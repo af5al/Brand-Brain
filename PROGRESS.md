@@ -1,7 +1,7 @@
 # Brand Brain — Learning & Implementation Progress
 
 ## Overall Status
-- **Current Phase:** Day 1, Phase 0 (Setup & "Hello AI")
+- **Current Phase:** Day 1, Phase 1 (Ingestion & Retrieval — The RAG Core)
 - **Target Company:** Nextoria Information Technology LLC (Dubai) — AI Engineer Role
 - **Core Stack:** React Native (Expo) + FastAPI + Supabase pgvector + Gemini API (Free tier)
 
@@ -12,8 +12,8 @@
 ### Day 1: Foundations and the RAG Core
 | Phase | Status | Focus |
 |---|---|---|
-| **Phase 0: Setup and "Hello AI"** | 🟡 In Progress | Architecture, FastAPI async healthcheck, Gemini wrapper, Expo handshake |
-| **Phase 1: Ingestion and Retrieval (RAG Core)** | ⚪ Pending | Chunking, embeddings, pgvector, similarity search |
+| **Phase 0: Setup and "Hello AI"** | 🟢 Complete | Architecture, FastAPI async healthcheck, Gemini wrapper, Expo mobile handshake |
+| **Phase 1: Ingestion and Retrieval (RAG Core)** | 🟡 Up Next | Chunking, embeddings, pgvector, similarity search |
 
 ### Day 2: Generation, Grounding & Mobile UI
 | Phase | Status | Focus |
@@ -34,12 +34,16 @@
 - [x] Client-Server separation & mobile thin client security
 - [x] Python `async`/`await` vs. Node.js Event Loop blocking behavior
 - [x] LLM Temperature dynamics (deterministic 0.0 vs creative 0.8+ trade-offs)
+- [x] Mobile Device Networking (Localhost loopback vs LAN IP & 0.0.0.0 binding)
+- [x] HTTP Stream Deserialization (`fetch` response vs `await res.json()`)
+- [x] Wrapper/Adapter Pattern for external AI providers & env configuration
 
 ## Weak Spots & Points to Practice
-- Bridging Node.js synchronous vs asynchronous event loop mental models to Python's `asyncio`.
-- Device networking when testing mobile apps against local backends (`localhost` vs LAN IP).
+- Expo Router root layout architecture (`<Slot />` or `<Stack />` requirement in `_layout.tsx`).
+- Remembering to bind Uvicorn to `0.0.0.0` for physical device network testing.
 
 ## Interview Questions Covered
 - *"Why can't mobile applications call LLM APIs directly?"* (Answered: Secret exposure via APK decompile + business logic/rate limiting/RAG orchestration control).
 - *"What happens if an LLM endpoint is synchronous instead of asynchronous?"* (Answered: Thread starvation, request queuing, 504 timeouts).
 - *"How do you select the temperature parameter for different LLM tasks?"* (Answered: Low 0.0–0.2 for deterministic data extraction & strict schemas; High 0.7+ for creative copywriting).
+- *"Walk me through the exact life of a request from mobile to backend to LLM and back."* (Answered: User gesture -> TCP/LAN -> FastAPI route -> HTTPS to Gemini -> JSON deserialize -> React state render).
