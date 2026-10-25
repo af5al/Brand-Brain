@@ -1,3 +1,4 @@
+from src.services.gemini import generate_embedding
 from src.services.gemini import generate_text
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -27,3 +28,9 @@ async def health_check():
 async def test_gemini():
     result = await generate_text("what is apple")
     return {"output": result}
+
+@app.get('/test-embedding')
+async def check_embedding():
+    text = 'Eco-friendly organic mango juice'
+    vector = await generate_embedding(text)
+    return {"dimensions": len(vector), "sample": vector[:5]}
