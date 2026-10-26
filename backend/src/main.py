@@ -1,3 +1,6 @@
+from src.services.gemini import search_brand_chunks
+from src.services.gemini import ingest_brand_service
+from src.schemas import IngestRequest
 from src.services.gemini import generate_embedding
 from src.services.gemini import generate_text
 from dotenv import load_dotenv
@@ -34,3 +37,19 @@ async def check_embedding():
     text = 'Eco-friendly organic mango juice'
     vector = await generate_embedding(text)
     return {"dimensions": len(vector), "sample": vector[:5]}
+
+@app.post('/brands/ingest')
+async def ingest_brand(req: IngestRequest):
+    result = await ingest_brand_service(req)
+    return result
+
+@app.post('/brands/{brand_id}/search')
+async def search_brand(brand_id: str, q: str):
+    results = await search_brand_chunks(brand_id, q, limit=5, threshold=0.50)
+    return {
+        "query": q,
+        "brand_id": brand_id,
+        "results_count": len(results),
+        "matches": results
+    }
+

@@ -56,7 +56,7 @@ export default function HomeScreen() {
         )}
 
 
-        <Button title="check gemini" color="green" onPress={handleGeminiHealthCheck}/>
+        <Button title="check health" color="green" onPress={handleGeminiHealthCheck}/>
         {geminiLoading ? (
           <ActivityIndicator />
         ) : (
