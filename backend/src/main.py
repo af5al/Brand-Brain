@@ -1,3 +1,5 @@
+from src.services.gemini import generate_campaign_result
+from src.schemas import CampaignRequest
 from src.services.gemini import search_brand_chunks
 from src.services.gemini import ingest_brand_service
 from src.schemas import IngestRequest
@@ -51,5 +53,13 @@ async def search_brand(brand_id: str, q: str):
         "brand_id": brand_id,
         "results_count": len(results),
         "matches": results
+    }
+
+@app.post('/campaigns/generate')
+async def generate_campaign(req: CampaignRequest):
+    results = await generate_campaign_result(req)
+    return {
+        "brand_id": req.brand_id,
+        "results": results,
     }
 
