@@ -1,3 +1,5 @@
+from src.services.gemini import draft_customer_reply
+from src.schemas import ReplyRequest
 from src.services.gemini import generate_campaign_result
 from src.schemas import CampaignRequest
 from src.services.gemini import search_brand_chunks
@@ -62,4 +64,8 @@ async def generate_campaign(req: CampaignRequest):
         "brand_id": req.brand_id,
         "results": results,
     }
+    
+@app.post('/replies/draft')
+async def handle_reply_draft(req: ReplyRequest):
+    return await draft_customer_reply(req)
 

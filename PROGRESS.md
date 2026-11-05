@@ -18,13 +18,13 @@
 ### Day 2: Generation, Grounding & Mobile UI
 | Phase | Status | Focus |
 |---|---|---|
-| **Phase 2: Campaign Generator** | 🟡 Up Next | Structured JSON generation, Pydantic validation, English/Arabic RTL, multi-channel copy |
-| **Phase 3: Reply Assistant** | ⚪ Pending | Grounding checks, confidence thresholding, human-in-the-loop escalation |
+| **Phase 2: Campaign Generator** | 🟢 Complete | Structured JSON generation, Pydantic validation, English/Arabic RTL, multi-channel copy |
+| **Phase 3: Reply Assistant** | 🟢 Complete | Grounding checks, confidence thresholding, human-in-the-loop escalation, exponential backoff retry |
 
 ### Day 3: Quality, Deployment & Interview Prep
 | Phase | Status | Focus |
 |---|---|---|
-| **Phase 4: Evaluation & Hardening** | ⚪ Pending | Golden test set, Hit Rate@k, error handling & retry |
+| **Phase 4: Evaluation & Hardening** | 🟡 Up Next | Golden test set, Hit Rate@k, error handling & retry |
 | **Phase 4b: Deployment** | ⚪ Pending | Render (backend), Supabase (DB), EAS Android APK |
 | **Phase 5: Packaging & Mock Interview** | ⚪ Pending | README, demo video, resume bullets, 15-question technical interview |
 
@@ -40,6 +40,10 @@
 - [x] PostgreSQL + pgvector schema design with HNSW vector index
 - [x] Similarity threshold calibration (filtering baseline noise e.g. 0.30 vs 0.50)
 - [x] Multi-tenant data isolation (`filter_brand_id` partition in vector RPC)
+- [x] RAG grounding & hallucination prevention (confidence threshold + escalation guardrail)
+- [x] Exponential backoff retry for transient API errors (503 / 429 / RESOURCE_EXHAUSTED)
+- [x] Structured JSON output with Pydantic `response_schema` for zero-parse-error LLM responses
+- [x] Human-in-the-loop escalation pattern (AI defers when evidence score < threshold)
 
 ## Weak Spots & Points to Practice
 - Python `enumerate()` order: `(index, item)`.
