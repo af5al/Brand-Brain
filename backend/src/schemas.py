@@ -47,4 +47,20 @@ class ReplyResponse(BaseModel):
     escalation_reason: Optional[str] = None
     grounded_facts_used: List[str] = []
     
+class CreateBrandRequest(BaseModel):
+    brand_name: str
+
+class BrandResponse(BaseModel):
+    id: str
+    name: str
+
+class AddDocumentRequest(BaseModel):
+    document_title: str
+    content: str
+
+class DocumentResponse(BaseModel):
+    id: str
+    brand_id: str
+    title: str
+    raw_content: str
 

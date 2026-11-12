@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useBrand } from "@/context/BrandContext";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -39,29 +40,49 @@ const initialCampaignDetails: CampaignDetailsType = {
   approvedStatus: false,
 };
 
-const BACKEND_URL = "http://192.168.0.171:8000";
-const IGLOO_BRAND_ID = "e58a326e-9ce7-4663-97b5-0fe7e781a058";
+const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 
 const CampaignGenerationPage = () => {
   const [campaignDetails, setCampaignDetails] = useState<CampaignDetailsType>(
     initialCampaignDetails,
   );
 
+  const { activeBrand } = useBrand();
+
+  useEffect(() => {
+    setCampaignDetails((prev) => ({
+      ...prev,
+      campaign: null,
+      approvedStatus: false,
+    }));
+  }, [activeBrand?.id]);
+
   const handleGenerateCampaign = async () => {
+    if (!activeBrand) {
+      Alert.alert(
+        "No Brand Selected",
+        "Select or create a brand in Brands & Docs first.",
+      );
+      return;
+    }
     setCampaignDetails((prev) => ({ ...prev, loading: true }));
     try {
-      const res = await fetch(`${BACKEND_URL}/campaigns/generate`, {
+      const res = await fetch(`${SERVER_URL}/campaigns/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          brand_id: IGLOO_BRAND_ID,
+          brand_id: activeBrand.id,
           product_name: campaignDetails.productName,
           channel: campaignDetails.channel,
           language: campaignDetails.language,
         }),
       });
-
       const data = await res.json();
+      if (!res.ok) {
+        Alert.alert("Error", data.detail || "Failed to generate campaign.");
+        setCampaignDetails((prev) => ({ ...prev, loading: false }));
+        return;
+      }
       setCampaignDetails((prev) => ({
         ...prev,
         campaign: data.results,

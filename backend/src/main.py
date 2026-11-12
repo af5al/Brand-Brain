@@ -1,3 +1,12 @@
+from src.services.gemini import list_brands_service
+from src.services.gemini import delete_document
+from src.services.gemini import update_document
+from src.services.gemini import add_document_to_brand
+from src.schemas import AddDocumentRequest
+from src.services.db import get_supabase
+from src.services.gemini import delete_brand
+from src.services.gemini import create_brand
+from src.schemas import CreateBrandRequest
 from src.services.gemini import draft_customer_reply
 from src.schemas import ReplyRequest
 from src.services.gemini import generate_campaign_result
@@ -68,4 +77,36 @@ async def generate_campaign(req: CampaignRequest):
 @app.post('/replies/draft')
 async def handle_reply_draft(req: ReplyRequest):
     return await draft_customer_reply(req)
+
+@app.post('/brands')
+async def register_brand(req: CreateBrandRequest):
+    return await create_brand(req.brand_name)
+
+
+### brands crud ###  
+@app.delete('/brands/{brand_id}')
+async def remove_brand(brand_id: str):
+    return await delete_brand(brand_id)
+
+@app.get('/brands/{brand_id}/documents')
+async def get_documents(brand_id: str):
+    supabase = get_supabase()
+    res = supabase.table("documents").select("*").eq("brand_id", brand_id).execute()
+    return res.data
+
+@app.post('/brands/{brand_id}/documents')
+async def add_document(brand_id: str, req: AddDocumentRequest):
+    return await add_document_to_brand(brand_id, req.document_title, req.content)
+
+@app.put('/brands/{brand_id}/documents/{doc_id}')
+async def edit_document(brand_id: str, doc_id: str, req: AddDocumentRequest):
+    return await update_document(brand_id, doc_id, req.document_title, req.content)
+
+@app.delete('/brands/{brand_id}/documents/{doc_id}')
+async def remove_document(brand_id: str, doc_id: str):
+    return await delete_document(doc_id)
+
+@app.get('/brands')
+async def list_brands():
+    return await list_brands_service()
 

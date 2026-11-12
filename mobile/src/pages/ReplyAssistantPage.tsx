@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import { useBrand } from "@/context/BrandContext";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,8 +10,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-const IGLOO_BRAND_ID = "e58a326e-9ce7-4663-97b5-0fe7e781a058";
 
 interface ReplyResult {
   intent: "faq" | "lead" | "complaint" | "out_of_scope";
@@ -27,23 +27,38 @@ export const ReplyAssistantPage = () => {
   );
   const [loading, setLoading] = useState(false);
   const [replyResult, setReplyResult] = useState<ReplyResult | null>(null);
+  const { activeBrand } = useBrand();
+
+  useEffect(() => {
+    setReplyResult(null);
+  }, [activeBrand?.id]);
 
   const handleDraftReply = async () => {
+    if (!activeBrand) {
+      Alert.alert(
+        "No Brand Selected",
+        "Select or create a brand in Brands & Docs first.",
+      );
+      return;
+    }
+    setLoading(true);
     try {
-      const serverUrl: string = process.env.EXPO_PUBLIC_SERVER_URL as any;
+      const serverUrl = process.env.EXPO_PUBLIC_SERVER_URL;
       const response = await fetch(`${serverUrl}/replies/draft`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          brand_id: IGLOO_BRAND_ID,
+          brand_id: activeBrand.id,
           customer_message: customerMessage,
           channel,
         }),
       });
 
       const data = await response.json();
+      if (!response.ok) {
+        Alert.alert("Error", data.detail || "Failed to draft reply.");
+        return;
+      }
       setReplyResult(data);
     } catch (error: any) {
       console.error("failed to fetch drafted reply", error?.message);
@@ -51,6 +66,7 @@ export const ReplyAssistantPage = () => {
       setLoading(false);
     }
   };
+  
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.heading}>Customer Reply Assistant</Text>

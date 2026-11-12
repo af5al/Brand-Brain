@@ -207,7 +207,86 @@ async def draft_customer_reply(req: ReplyRequest):
         status_code=503,
         detail="AI service temporarily unavailable after retries. Please try again in a moment."
     )
+    
+async def create_brand(name: str):
+    clean_name = name.strip()
+    if not clean_name:
+        raise HTTPException(status_code = 400, detail="Brand name cannot be empty.")
+    supabase = get_supabase()
+    try:
+        res = supabase.table("brands").insert({
+             "name": name
+        }).execute()
+        return res.data[0]
+    except Exception as e:
+        if "unique" in str(e).lower() or "duplicate" in str(e).lower():
+            raise HTTPException(status_code = 409, detail= f"Brand '{name}' already exists") 
+        raise
+    
+async def delete_brand(brand_id: str):
+    supabase = get_supabase()
+    # FK cascade: chunks → documents → brand
+    supabase.table("document_chunks").delete().eq("brand_id", brand_id).execute()
+    supabase.table("documents").delete().eq("brand_id", brand_id).execute()
+    supabase.table("brands").delete().eq("id", brand_id).execute()
+    return {"status": "deleted", "brand_id": brand_id}
 
+# ── Document CRUD ───────────────────────────────────────────
+async def add_document_to_brand(brand_id: str, title: str, content: str):
+    supabase = get_supabase()
+    doc_res = supabase.table("documents").insert({
+        "brand_id": brand_id,
+        "title": title,
+        "raw_content": content
+    }).execute()
+    doc_id = doc_res.data[0]["id"]
+    chunks = chunk_text(content, chunk_size=500, chunk_overlap=50)
+    records = []
+    for index, chunk in enumerate(chunks):
+        embedding = await generate_embedding(chunk)
+        records.append({
+            "document_id": doc_id,
+            "brand_id": brand_id,
+            "chunk_index": index,
+            "content": chunk,
+            "embedding": embedding
+        })
+    if records:
+       supabase.table("document_chunks").insert(records).execute()
+    return {"status": "success", "doc_id": doc_id, "chunks_added": len(records)}
 
+async def list_brands_service():
+    supabase = get_supabase()
+    res = supabase.table("brands").select("*").order("name").execute()
+    return res.data
 
+async def update_document(brand_id: str, doc_id: str, title: str, content: str):
+    supabase = get_supabase()
+    # Delete stale embeddings first (embedding drift prevention)
+    supabase.table("document_chunks").delete().eq("document_id", doc_id).execute()
+    # Update the source text
+    supabase.table("documents").update({
+        "title": title,
+        "raw_content": content
+    }).eq("id", doc_id, "brand_id", brand_id).execute()
+    # Re-chunk and re-embed fresh
+    chunks = chunk_text(content, chunk_size=500, chunk_overlap=50)
+    records = []
+    for index, chunk in enumerate(chunks):
+        embedding = await generate_embedding(chunk)
+        records.append({
+            "document_id": doc_id,
+            "brand_id": brand_id,
+            "chunk_index": index,
+            "content": chunk,
+            "embedding": embedding
+        })
+    if records:
+     supabase.table("document_chunks").insert(records).execute()
+    return {"status": "updated", "doc_id": doc_id, "chunks_added": len(records)}
 
+async def delete_document(doc_id: str):
+    supabase = get_supabase()
+    supabase.table("document_chunks").delete().eq("document_id", doc_id).execute()
+    supabase.table("documents").delete().eq("id", doc_id).execute()
+    return {"status": "deleted", "doc_id": doc_id}
